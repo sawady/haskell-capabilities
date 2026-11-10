@@ -43,6 +43,9 @@ released versions yet.
   page.
 - "Exploring in GHCi": how to ask GHC for the types it infers in B and D, in the README and the
   page. `build.sh` records the sessions in `outputs/ghci-B.txt` and `outputs/ghci-D.txt`.
+- The comparison table of the four styles and the recommendations for the thesis, also in the
+  README.
+- A minimal bibliography, in the README and the page.
 
 ### Fixed
 

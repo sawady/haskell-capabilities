@@ -347,7 +347,7 @@ ghci&gt; run (handleConsolePure (handleNet fakePages (summary "https://example.o
 ((),["&lt;title of https://example.org&gt;"])</pre>
   </figure>
 
-  <h2>The four, side by side</h2>
+  <h2 id="side-by-side">The four, side by side</h2>
   <div class="table">
     <table>
       <thead><tr><th></th><th>Records over <code>m</code></th><th>Tagless final</th><th>Transformers</th><th>mtl style</th><th>Effect rows</th></tr></thead>
@@ -362,7 +362,7 @@ ghci&gt; run (handleConsolePure (handleNet fakePages (summary "https://example.o
     </table>
   </div>
 
-  <h2>What suits the thesis</h2>
+  <h2 id="thesis">What suits the thesis</h2>
   <ol>
     <li><strong>Write the programs in tagless final, with single-parameter classes.</strong> It is Haskell 2010 with no extensions, inference is decidable and GHC computes the set of capabilities of each fragment. That is what the oracle needs.</li>
     <li><strong>Build the interpreters with transformers.</strong> It is the existing line of work of the UNQ research group and it fits without conflict, as the mtl example shows.</li>
@@ -370,6 +370,30 @@ ghci&gt; run (handleConsolePure (handleNet fakePages (summary "https://example.o
     <li><strong>Use effect rows as a point of comparison</strong> in the theoretical framework. They are more expressive, because a handler can reinterpret an effect, but they require extensions and a more complex type system for the oracle.</li>
   </ol>
   <p>One limitation to keep in mind: with classes, the capability is "use the network", not "use this URL". Restricting which resources are accessed would call for refinements or other mechanisms, and is outside this scope.</p>
+
+  <h2 id="references">References</h2>
+  <p>A minimal bibliography, by section.</p>
+  <h3>Ambient authority and capabilities</h3>
+  <ul>
+    <li>Mark S. Miller, Ka-Ping Yee and Jonathan Shapiro. <a href="http://www.erights.org/talks/myths/">Capability Myths Demolished</a>. Technical Report SRL2003-02, Johns Hopkins University, 2003. It defines <em>ambient authority</em>: authority that is exercised, but not selected, by its user.</li>
+    <li>Mark Samuel Miller. <a href="http://www.erights.org/talks/thesis/">Robust Composition: Towards a Unified Approach to Access Control and Concurrency Control</a>. PhD dissertation, Johns Hopkins University, 2006. Object capabilities and the principle of least authority.</li>
+  </ul>
+  <h3>Tagless final (section 2)</h3>
+  <ul>
+    <li>Jacques Carette, Oleg Kiselyov and Chung-chieh Shan. Finally tagless, partially evaluated: Tagless staged interpreters for simpler typed languages. <em>Journal of Functional Programming</em> 19(5):509&ndash;543, 2009. <a href="https://doi.org/10.1017/S0956796809007205">doi:10.1017/S0956796809007205</a></li>
+  </ul>
+  <h3>Monad transformers and the mtl style (section 3)</h3>
+  <ul>
+    <li>Sheng Liang, Paul Hudak and Mark Jones. Monad transformers and modular interpreters. In <em>Proceedings of the 22nd ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages (POPL &rsquo;95)</em>, pages 333&ndash;343, 1995. <a href="https://doi.org/10.1145/199448.199528">doi:10.1145/199448.199528</a></li>
+    <li>Mark P. Jones. Functional programming with overloading and higher-order polymorphism. In <em>Advanced Functional Programming, First International Spring School on Advanced Functional Programming Techniques</em>, Lecture Notes in Computer Science, pages 97&ndash;136. Springer, 1995. <a href="https://doi.org/10.1007/3-540-59451-5_4">doi:10.1007/3-540-59451-5_4</a>. The paper that inspired the classes of <code>mtl</code>.</li>
+  </ul>
+  <h3>Effect rows (section 4)</h3>
+  <ul>
+    <li>Oleg Kiselyov, Amr Sabry and Cameron Swords. Extensible effects: an alternative to monad transformers. In <em>Proceedings of the 2013 ACM SIGPLAN Symposium on Haskell</em>, pages 59&ndash;70, 2013. <a href="https://doi.org/10.1145/2503778.2503791">doi:10.1145/2503778.2503791</a>. Effects as an open union, with a <code>Member</code> constraint.</li>
+    <li>Oleg Kiselyov and Hiromi Ishii. Freer monads, more extensible effects. In <em>Proceedings of the 2015 ACM SIGPLAN Symposium on Haskell</em>, pages 94&ndash;105, 2015. <a href="https://doi.org/10.1145/2804302.2804319">doi:10.1145/2804302.2804319</a>. A request to one effect of the row plus a continuation, which is how <code>Eff</code> is defined in <code>src/Effects.hs</code>.</li>
+    <li>Daan Leijen. Koka: Programming with row polymorphic effect types. In <em>Proceedings of the 5th Workshop on Mathematically Structured Functional Programming (MSFP 2014)</em>, EPTCS 153, pages 100&ndash;126, 2014. <a href="https://doi.org/10.4204/EPTCS.153.8">doi:10.4204/EPTCS.153.8</a></li>
+    <li>Effect libraries for Haskell mentioned above: <a href="https://hackage.haskell.org/package/effectful">effectful</a>, <a href="https://hackage.haskell.org/package/polysemy">polysemy</a> and <a href="https://hackage.haskell.org/package/fused-effects">fused-effects</a>.</li>
+  </ul>
 
   <footer>
     <span>Repository: <a href="https://github.com/sawady/haskell-capabilities">github.com/sawady/haskell-capabilities</a>. <code>./build.sh</code> builds and runs everything, and checks that the examples in <code>must-fail/</code> do not compile.</span>

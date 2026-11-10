@@ -24,6 +24,27 @@ while a language model writes the code.
 The project was originally written in Spanish, as `capacidades-haskell`; that version is kept
 at the tag [`v-es`](https://github.com/sawady/haskell-capabilities/tree/v-es) (commit `4d808dd`).
 
+## The four, side by side
+
+This is the comparison the guide arrives at ([The four, side by side](https://sawady.github.io/haskell-capabilities/#side-by-side)):
+
+| | Records over `m` | Tagless final | Transformers | mtl style | Effect rows |
+|:--|:--|:--|:--|:--|:--|
+| Where the capability is | In the arguments | In the class constraints | In the layers of the stack | In the class constraints | In the row of `Eff` |
+| Removes ambient authority | Yes | Yes | No: IO is at the bottom | Yes, except with `MonadIO` | Yes, unless IO is in the row |
+| GHC infers the set used | No | Yes | No: the stack is declared | Yes | Yes |
+| Order matters | That of the arguments | No | Yes | Not in the program; yes in the interpreter's stack | Yes, when applying the handlers |
+| Extensions | None | None | None | `FlexibleContexts` | Seven |
+| Cost of using it | Carrying arguments around | One instance per capability and interpreter | `lift` by hand | n² instances | Writing handlers |
+
+And what suits the thesis ([the reasons, in the guide](https://sawady.github.io/haskell-capabilities/#thesis)):
+
+1. Write the programs in tagless final, with single-parameter classes.
+2. Build the interpreters with transformers.
+3. Leave out of the subset everything that gives back ambient authority: `IO` in signatures,
+   `MonadIO` and `unsafePerformIO`.
+4. Use effect rows as a point of comparison in the theoretical framework.
+
 ## How to run it
 
 ```
@@ -175,6 +196,50 @@ edited by hand: it is generated from `site/template.html` with
 The generator inserts into the template the fragments of `src/`, `must-fail/` and `outputs/`, and
 highlights the Haskell code, so the code and the errors on the page are always the ones the script
 compiles. `.github/workflows/pages.yml` publishes it to GitHub Pages.
+
+## References
+
+A minimal bibliography, by section of the guide. It is also at the end of the
+[guide](https://sawady.github.io/haskell-capabilities/#references).
+
+- Ambient authority and capabilities:
+  - Mark S. Miller, Ka-Ping Yee and Jonathan Shapiro.
+    [Capability Myths Demolished](http://www.erights.org/talks/myths/). Technical Report
+    SRL2003-02, Johns Hopkins University, 2003. It defines *ambient authority*: authority that is
+    exercised, but not selected, by its user.
+  - Mark Samuel Miller.
+    [Robust Composition: Towards a Unified Approach to Access Control and Concurrency Control](http://www.erights.org/talks/thesis/).
+    PhD dissertation, Johns Hopkins University, 2006. Object capabilities and the principle of
+    least authority.
+- Tagless final (section 2):
+  - Jacques Carette, Oleg Kiselyov and Chung-chieh Shan. Finally tagless, partially evaluated:
+    Tagless staged interpreters for simpler typed languages. *Journal of Functional Programming*
+    19(5):509–543, 2009. [doi:10.1017/S0956796809007205](https://doi.org/10.1017/S0956796809007205)
+- Monad transformers and the mtl style (section 3):
+  - Sheng Liang, Paul Hudak and Mark Jones. Monad transformers and modular interpreters. In
+    *Proceedings of the 22nd ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages
+    (POPL '95)*, pages 333–343, 1995. [doi:10.1145/199448.199528](https://doi.org/10.1145/199448.199528)
+  - Mark P. Jones. Functional programming with overloading and higher-order polymorphism. In
+    *Advanced Functional Programming, First International Spring School on Advanced Functional
+    Programming Techniques*, Lecture Notes in Computer Science, pages 97–136. Springer, 1995.
+    [doi:10.1007/3-540-59451-5_4](https://doi.org/10.1007/3-540-59451-5_4). The paper that
+    inspired the classes of `mtl`.
+- Effect rows (section 4):
+  - Oleg Kiselyov, Amr Sabry and Cameron Swords. Extensible effects: an alternative to monad
+    transformers. In *Proceedings of the 2013 ACM SIGPLAN Symposium on Haskell*, pages 59–70,
+    2013. [doi:10.1145/2503778.2503791](https://doi.org/10.1145/2503778.2503791). Effects as an
+    open union, with a `Member` constraint.
+  - Oleg Kiselyov and Hiromi Ishii. Freer monads, more extensible effects. In *Proceedings of the
+    2015 ACM SIGPLAN Symposium on Haskell*, pages 94–105, 2015.
+    [doi:10.1145/2804302.2804319](https://doi.org/10.1145/2804302.2804319). A request to one
+    effect of the row plus a continuation, which is how `Eff` is defined in `src/Effects.hs`.
+  - Daan Leijen. Koka: Programming with row polymorphic effect types. In *Proceedings of the 5th
+    Workshop on Mathematically Structured Functional Programming (MSFP 2014)*, EPTCS 153, pages
+    100–126, 2014. [doi:10.4204/EPTCS.153.8](https://doi.org/10.4204/EPTCS.153.8)
+  - Effect libraries for Haskell mentioned in the guide:
+    [effectful](https://hackage.haskell.org/package/effectful),
+    [polysemy](https://hackage.haskell.org/package/polysemy) and
+    [fused-effects](https://hackage.haskell.org/package/fused-effects).
 
 ## Contributing
 
