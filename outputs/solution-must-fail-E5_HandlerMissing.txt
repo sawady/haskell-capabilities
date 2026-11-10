@@ -1,0 +1,13 @@
+exercises/solutions/must-fail/E5_HandlerMissing.hs:19:41: error: [GHC-39999]
+    • No instance for ‘Member Console '[]’
+        arising from a use of ‘summary’
+    • In the second argument of ‘handleNet’, namely
+        ‘(summary "https://example.org")’
+      In the first argument of ‘run’, namely
+        ‘(handleNet fakePages (summary "https://example.org"))’
+      In the first argument of ‘print’, namely
+        ‘(run (handleNet fakePages (summary "https://example.org")))’
+   |
+19 | main = print (run (handleNet fakePages (summary "https://example.org")))
+   |                                         ^^^^^^^
+

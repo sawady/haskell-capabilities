@@ -1,0 +1,4 @@
+<title of https://example.org/docs> (request 1)
+<title of https://example.org/blog> (request 2)
+Requests made: 2
+URLs requested: ["https://example.org/docs","https://example.org/blog"]

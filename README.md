@@ -60,6 +60,9 @@ needed. The script:
   `-- Expected error: [GHC-NNNNN]`, and any other error, such as a parse error or a missing
   module, counts as a failure;
 - records the GHCi sessions of [Exploring in GHCi](#exploring-in-ghci);
+- checks the solutions to the [exercises](#exercises) in the same way: the ones in
+  `exercises/solutions/` compile and run, and the ones in `exercises/solutions/must-fail/` are
+  rejected with the error they expect;
 - saves to `outputs/` everything that is shown, including GHC's error messages.
 
 The examples run with a fixed environment (only `LANG` and `PATH`), so that the outputs do not
@@ -174,6 +177,14 @@ the file, give `summary` a signature with fewer capabilities than it uses, and `
 the handlers in the other order. `build.sh` regenerates these sessions in `outputs/ghci-B.txt` and
 `outputs/ghci-D.txt`.
 
+## Exercises
+
+[`exercises/`](exercises/README.md) has five graded exercises, from part A to part D: adding a
+capability as a record and as a class, predicting GHC's errors with transformers and in the mtl
+style, running the mtl-style program without IO, and following the row through the handlers. The
+solutions are in `exercises/solutions/`, apart from the statements, and `build.sh` and CI check
+them like the examples.
+
 ## Which extensions are needed, and why
 
 | Style | Extensions | Why |
@@ -256,8 +267,8 @@ This project is free software. If it is useful to you, you can support its devel
 
 ## License
 
-- The code (`src/`, `must-fail/`, `build.sh`, `site/build.py` and the CI workflows) is under the
-  BSD 3-Clause license: see [`LICENSE`](LICENSE).
-- The text (this README and the explanatory page, `site/template.html` and `site/index.html`) is
-  under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/): see
+- The code (`src/`, `must-fail/`, `exercises/solutions/`, `build.sh`, `site/build.py` and the CI
+  workflows) is under the BSD 3-Clause license: see [`LICENSE`](LICENSE).
+- The text (this README, the exercises in `exercises/README.md` and the explanatory page,
+  `site/template.html` and `site/index.html`) is under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/): see
   [`LICENSE-docs`](LICENSE-docs). Code fragments that appear in the text remain under BSD 3-Clause.

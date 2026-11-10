@@ -1,0 +1,17 @@
+exercises/solutions/must-fail/E3_OneLiftTooFew.hs:27:9: error: [GHC-83865]
+    • Couldn't match type ‘IO’ with ‘StateT Int IO’
+      Expected: StateT Int IO ()
+        Actual: IO ()
+    • In the first argument of ‘lift’, namely
+        ‘(putStrLn (firstLine page ++ " (request " ++ show n ++ ")"))’
+      In a stmt of a 'do' block:
+        lift (putStrLn (firstLine page ++ " (request " ++ show n ++ ")"))
+      In the expression:
+        do cfg <- ask
+           page <- fetch (server cfg ++ path)
+           n <- lift get
+           lift (putStrLn (firstLine page ++ " (request " ++ show n ++ ")"))
+   |
+27 |   lift (putStrLn (firstLine page ++ " (request " ++ show n ++ ")"))
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+

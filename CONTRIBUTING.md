@@ -20,10 +20,11 @@ python3 site/build.py       # regenerate the page from site/template.html
 ```
 
 That is the test: the script must end with 0 failures (the examples in `src/` compile and run, the
-ones in `must-fail/` are rejected with the error they expect), and `git diff outputs/` must show
+ones in `must-fail/` are rejected with the error they expect, and the same goes for the solutions
+in `exercises/solutions/` and `exercises/solutions/must-fail/`), and `git diff outputs/` must show
 only the changes you expected. CI does the same with GHC 9.6 to 9.14.
 
-A new example in `must-fail/` needs a line `-- Expected error: [GHC-NNNNN]` with the code of the
+A new example in `must-fail/` (or a new solution in `exercises/solutions/must-fail/`) needs a line `-- Expected error: [GHC-NNNNN]` with the code of the
 error GHC has to reject it with (GHC's error codes are stable since 9.6, and listed in the
 [Haskell Error Index](https://errors.haskell.org/)). The example only counts as failing as
 expected if every error GHC reports has that code.

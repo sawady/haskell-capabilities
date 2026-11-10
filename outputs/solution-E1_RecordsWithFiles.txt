@@ -1,0 +1,4 @@
+Records over IO:
+<title of https://example.org> / contents of note.txt
+Records over State (output captured in a list):
+test page for https://example.org / simulated contents of note.txt

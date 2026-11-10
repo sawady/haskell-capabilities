@@ -1,0 +1,2 @@
+ghci> :t stampedSummary
+stampedSummary :: (Clock m, Net m, Console m) => Url -> m ()

@@ -1,5 +1,6 @@
-# Runs ./build.sh with several GHC versions. Fails if an example in src/ does
-# not compile or does not run, if anything in must-fail/ compiles or is
+# Runs ./build.sh with several GHC versions. Fails if an example in src/ (or
+# a solution in exercises/solutions/) does not compile or does not run, if
+# anything in must-fail/ (or exercises/solutions/must-fail/) compiles or is
 # rejected with an error other than the one it expects, or if the outputs
 # differ from the ones in the repository.
 #

@@ -1,0 +1,26 @@
+exercises/solutions/must-fail/E3_StateNotGranted.hs:20:3: error: [GHC-39999]
+    • Could not deduce ‘MonadState Integer m’
+        arising from a use of ‘modify’
+      from the context: (MonadReader Config m, Net m)
+        bound by the type signature for:
+                   summary :: forall (m :: * -> *).
+                              (MonadReader Config m, Net m) =>
+                              String -> m String
+        at exercises/solutions/must-fail/E3_StateNotGranted.hs:17:1-62
+    • In a stmt of a 'do' block: modify (+ 1)
+      In the expression:
+        do cfg <- ask
+           modify (+ 1)
+           page <- httpGet (server cfg ++ path)
+           n <- get
+           ....
+      In an equation for ‘summary’:
+          summary path
+            = do cfg <- ask
+                 modify (+ 1)
+                 page <- httpGet (server cfg ++ path)
+                 ....
+   |
+20 |   modify (+ 1)
+   |   ^^^^^^
+

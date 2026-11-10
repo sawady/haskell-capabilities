@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Builds and runs each example in src/, checks that the ones in must-fail/ do
-# not compile, each one with the error it expects, and saves everything that is
-# shown to outputs/.
+# not compile, each one with the error it expects, does the same with the
+# solutions in exercises/solutions/, and saves everything that is shown to
+# outputs/.
 #
 # By default it uses the `ghc` on the PATH (or GHCup's). To try another version:
 #   GHC=ghc-9.6.7 ./build.sh
@@ -23,17 +24,23 @@ fixed_env=(env -i "LANG=${LC_ALL:-${LANG:-C.UTF-8}}" PATH=/usr/bin:/bin)
 
 "$ghc" --version > outputs/ghc-version.txt
 
-for f in src/[A-Z]*_*.hs; do
+# Builds a program and runs it, saving what it prints to the given file.
+build_and_run() {
+  local f=$1 out=$2 n
   n=$(basename "$f" .hs)
   if $GHCC -o "$build/$n" "$f" > "$build/$n.log" 2>&1; then
-    if "${fixed_env[@]}" "./$build/$n" > "outputs/$n.txt" 2>&1; then
+    if "${fixed_env[@]}" "./$build/$n" > "$out" 2>&1; then
       echo "ok                $n"
     else
-      cat "outputs/$n.txt"; echo "FAILED TO RUN $n"; failures=$((failures + 1))
+      cat "$out"; echo "FAILED TO RUN $n"; failures=$((failures + 1))
     fi
   else
     cat "$build/$n.log"; echo "DOES NOT COMPILE $n"; failures=$((failures + 1))
   fi
+}
+
+for f in src/[A-Z]*_*.hs; do
+  build_and_run "$f" "outputs/$(basename "$f" .hs).txt"
 done
 
 # Each file in must-fail/ declares, in a line "-- Expected error: [GHC-NNNNN]",
@@ -98,5 +105,17 @@ ghci_step outputs/ghci-D.txt src/D_EffectRows.hs \
   ':t handleConsolePure (handleNet fakePages (summary "https://example.org"))'
 ghci_step outputs/ghci-D.txt src/D_EffectRows.hs \
   'run (handleConsolePure (handleNet fakePages (summary "https://example.org")))'
+
+# The solutions to the exercises, with the same criterion as the examples:
+# the ones in exercises/solutions/ compile and run, the ones in
+# exercises/solutions/must-fail/ are rejected with the error they expect.
+for f in exercises/solutions/*.hs; do
+  build_and_run "$f" "outputs/solution-$(basename "$f" .hs).txt"
+done
+for f in exercises/solutions/must-fail/*.hs; do
+  check_must_fail "$f" "outputs/solution-must-fail-$(basename "$f" .hs).txt"
+done
+: > outputs/solution-E2_Clock-ghci.txt
+ghci_step outputs/solution-E2_Clock-ghci.txt exercises/solutions/E2_Clock.hs ':t stampedSummary'
 
 exit $failures

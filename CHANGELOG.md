@@ -49,6 +49,11 @@ released versions yet.
 - The comparison table of the four styles and the recommendations for the thesis, also in the
   README.
 - A minimal bibliography, in the README and the page.
+- Five graded exercises, from part A to part D, in `exercises/README.md`, with their solutions
+  apart in `exercises/solutions/`. `build.sh` and CI check the solutions like the examples: the
+  ones in `exercises/solutions/` compile and run, and the ones in
+  `exercises/solutions/must-fail/` are rejected with the error they expect. Their outputs are in
+  `outputs/solution-*.txt`.
 
 ### Fixed
 
