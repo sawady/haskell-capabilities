@@ -21,6 +21,9 @@ released versions yet.
     Haskell code), and it is published with GitHub Pages by `.github/workflows/pages.yml`.
   - `README.en.md` was removed: `README.md` is the only README.
 - The code license changed from MIT to BSD 3-Clause. The text stays under CC BY-SA 4.0.
+- The examples in `must-fail/` declare the code of the error they expect
+  (`-- Expected error: [GHC-NNNNN]`), and `build.sh` checks that GHC rejects them with that error
+  and no other: before, any error counted, even a parse error or a missing module.
 - `build.sh` chooses the GHC version with `GHC=ghc-X.Y.Z`, builds in one directory per version,
   only adds GHCup to the `PATH` when there is no `ghc` at hand, and also counts an example that does
   not run as a failure.

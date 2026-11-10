@@ -1,4 +1,4 @@
-must-fail/B_InterpreterLacksCapability.hs:34:16: error: [GHC-39999]
+must-fail/B_InterpreterLacksCapability.hs:35:16: error: [GHC-39999]
     • No instance for ‘Files App’
         arising from a use of ‘summaryWithFile’
     • In the first argument of ‘runApp’, namely
@@ -8,6 +8,6 @@ must-fail/B_InterpreterLacksCapability.hs:34:16: error: [GHC-39999]
       In an equation for ‘main’:
           main = runApp (summaryWithFile "https://example.org" "note.txt")
    |
-34 | main = runApp (summaryWithFile "https://example.org" "note.txt")
+35 | main = runApp (summaryWithFile "https://example.org" "note.txt")
    |                ^^^^^^^^^^^^^^^
 

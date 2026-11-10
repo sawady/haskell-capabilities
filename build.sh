@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Builds and runs each example in src/, checks that the ones in must-fail/ do
-# not compile, and saves everything that is shown to outputs/.
+# not compile, each one with the error it expects, and saves everything that is
+# shown to outputs/.
 #
 # By default it uses the `ghc` on the PATH (or GHCup's). To try another version:
 #   GHC=ghc-9.6.7 ./build.sh
@@ -35,13 +36,31 @@ for f in src/[A-Z]*_*.hs; do
   fi
 done
 
-for f in must-fail/*.hs; do
+# Each file in must-fail/ declares, in a line "-- Expected error: [GHC-NNNNN]",
+# the code of the error GHC has to reject it with. It only counts as failing
+# as expected if GHC reports at least one error and all of them have that
+# code: a parse error or a missing module does not count.
+check_must_fail() {
+  local f=$1 out=$2 n expected errors matching
   n=$(basename "$f" .hs)
-  if $GHCC -v0 -fno-code "$f" > "outputs/must-fail-$n.txt" 2>&1; then
-    echo "COMPILED (should have failed) $n"; failures=$((failures + 1))
-  else
-    echo "fails as expected $n"
+  expected=$(sed -n 's/^-- Expected error: \[\(GHC-[0-9]*\)\].*/\1/p' "$f")
+  if [ -z "$expected" ]; then
+    echo "NO '-- Expected error: [GHC-NNNNN]' LINE IN $f"; failures=$((failures + 1)); return
   fi
+  if $GHCC -v0 -fno-code "$f" > "$out" 2>&1; then
+    echo "COMPILED (should have failed) $n"; failures=$((failures + 1)); return
+  fi
+  errors=$(grep -c ' error:' "$out")
+  matching=$(grep -c " error: \[$expected\]" "$out")
+  if [ "$errors" -gt 0 ] && [ "$errors" -eq "$matching" ]; then
+    echo "fails as expected $n ($expected)"
+  else
+    cat "$out"; echo "FAILS FOR ANOTHER REASON $n (expected $expected)"; failures=$((failures + 1))
+  fi
+}
+
+for f in must-fail/*.hs; do
+  check_must_fail "$f" "outputs/must-fail-$(basename "$f" .hs).txt"
 done
 
 # The types GHC infers for the functions without signatures in example B

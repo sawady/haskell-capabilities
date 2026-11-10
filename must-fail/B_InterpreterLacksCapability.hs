@@ -1,6 +1,7 @@
 {-# LANGUAGE Haskell2010 #-}
 -- | Must fail: the program asks for Files and the interpreter does not grant
 -- it. Choosing the interpreter is choosing which capabilities are granted.
+-- Expected error: [GHC-39999]
 module Main (main) where
 
 import Capabilities

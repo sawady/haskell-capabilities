@@ -196,20 +196,20 @@ summaryWithFile
   <h3>What GHC rejects</h3>
   <figure class="code">
     <figcaption>must-fail/B_CapabilityNotGranted.hs: the signature grants network and console, the body reads a file <span class="chip fails">does not compile</span></figcaption>
-    <pre class="error">must-fail/B_CapabilityNotGranted.hs:11:13: error: [GHC-39999]
+    <pre class="error">must-fail/B_CapabilityNotGranted.hs:12:13: error: [GHC-39999]
     • Could not deduce ‘Files m’ arising from a use of ‘readTextFile’
       from the context: (Net m, Console m)</pre>
   </figure>
   <figure class="code">
     <figcaption>must-fail/B_DirectIO.hs: with the abstract monad, IO cannot be used <span class="chip fails">does not compile</span></figcaption>
-    <pre class="error">must-fail/B_DirectIO.hs:12:3: error: [GHC-25897]
+    <pre class="error">must-fail/B_DirectIO.hs:13:3: error: [GHC-25897]
     • Couldn't match type ‘m’ with ‘IO’
       Expected: m ()
         Actual: IO ()</pre>
   </figure>
   <figure class="code">
     <figcaption>must-fail/B_InterpreterLacksCapability.hs: the interpreter does not grant files <span class="chip fails">does not compile</span></figcaption>
-    <pre class="error">must-fail/B_InterpreterLacksCapability.hs:34:16: error: [GHC-39999]
+    <pre class="error">must-fail/B_InterpreterLacksCapability.hs:35:16: error: [GHC-39999]
     • No instance for ‘Files App’</pre>
   </figure>
 
@@ -326,7 +326,7 @@ handleNet pages (<span class="ty">Request</span> (<span class="ty">There</span> 
   <p>The same program is run by applying the handlers in order. One interprets the console by collecting lines in a list, without IO. Another interprets it with real IO, which then has to be further down the row. Rejecting a capability that was not granted works just as with classes:</p>
   <figure class="code">
     <figcaption>must-fail/D_EffectNotInRow.hs: the row only has Net, the body prints <span class="chip fails">does not compile</span></figcaption>
-    <pre class="error">must-fail/D_EffectNotInRow.hs:11:3: error: [GHC-39999]
+    <pre class="error">must-fail/D_EffectNotInRow.hs:12:3: error: [GHC-39999]
     • Could not deduce ‘Member Console es’
         arising from a use of ‘printLine’
       from the context: Member Net es</pre>
@@ -396,7 +396,7 @@ ghci&gt; run (handleConsolePure (handleNet fakePages (summary "https://example.o
   </ul>
 
   <footer>
-    <span>Repository: <a href="https://github.com/sawady/haskell-capabilities">github.com/sawady/haskell-capabilities</a>. <code>./build.sh</code> builds and runs everything, and checks that the examples in <code>must-fail/</code> do not compile.</span>
+    <span>Repository: <a href="https://github.com/sawady/haskell-capabilities">github.com/sawady/haskell-capabilities</a>. <code>./build.sh</code> builds and runs everything, and checks that the examples in <code>must-fail/</code> do not compile, each one with the error code it expects.</span>
     <span>Tested with GHC 9.12.2, using <code>base</code>, <code>mtl</code> and <code>transformers</code>.</span>
   </footer>
 </main>

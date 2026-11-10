@@ -1,6 +1,7 @@
 # Runs ./build.sh with several GHC versions. Fails if an example in src/ does
-# not compile or does not run, if anything in must-fail/ compiles, or if the
-# outputs differ from the ones in the repository.
+# not compile or does not run, if anything in must-fail/ compiles or is
+# rejected with an error other than the one it expects, or if the outputs
+# differ from the ones in the repository.
 #
 # outputs/ and site/index.html are generated with the reference version
 # (9.12.2) and compared exactly with that version. With the other versions

@@ -1,11 +1,11 @@
-must-fail/B_DirectIO.hs:12:3: error: [GHC-25897]
+must-fail/B_DirectIO.hs:13:3: error: [GHC-25897]
     • Couldn't match type ‘m’ with ‘IO’
       Expected: m ()
         Actual: IO ()
       ‘m’ is a rigid type variable bound by
         the type signature for:
           summary :: forall (m :: * -> *). (Net m, Console m) => Url -> m ()
-        at must-fail/B_DirectIO.hs:9:1-44
+        at must-fail/B_DirectIO.hs:10:1-44
     • In a stmt of a 'do' block: putStrLn (firstLine page)
       In the expression:
         do page <- httpGet url
@@ -15,8 +15,8 @@ must-fail/B_DirectIO.hs:12:3: error: [GHC-25897]
             = do page <- httpGet url
                  putStrLn (firstLine page)
     • Relevant bindings include
-        summary :: Url -> m () (bound at must-fail/B_DirectIO.hs:10:1)
+        summary :: Url -> m () (bound at must-fail/B_DirectIO.hs:11:1)
    |
-12 |   putStrLn (firstLine page)
+13 |   putStrLn (firstLine page)
    |   ^^^^^^^^^^^^^^^^^^^^^^^^^
 

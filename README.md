@@ -55,7 +55,10 @@ It needs GHC. It only uses `base`, `mtl` and `transformers`, which ship with GHC
 needed. The script:
 
 - builds and runs each example in `src/`;
-- checks that the ones in `must-fail/` do **not** compile;
+- checks that the ones in `must-fail/` do **not** compile, and that each one is rejected with the
+  error it expects: every file declares the code of that error in a line
+  `-- Expected error: [GHC-NNNNN]`, and any other error, such as a parse error or a missing
+  module, counts as a failure;
 - records the GHCi sessions of [Exploring in GHCi](#exploring-in-ghci);
 - saves to `outputs/` everything that is shown, including GHC's error messages.
 
