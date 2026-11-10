@@ -35,6 +35,7 @@ needed. The script:
 
 - builds and runs each example in `src/`;
 - checks that the ones in `must-fail/` do **not** compile;
+- records the GHCi sessions of [Exploring in GHCi](#exploring-in-ghci);
 - saves to `outputs/` everything that is shown, including GHC's error messages.
 
 The examples run with a fixed environment (only `LANG` and `PATH`), so that the outputs do not
@@ -68,6 +69,86 @@ but when showing B's inferred types it expands the synonyms (`[Char]` instead of
 | `must-fail/B_DirectIO.hs` | With the abstract monad, not even IO can be used directly. | Haskell 2010 |
 | `must-fail/B_InterpreterLacksCapability.hs` | The program asks for files and the interpreter does not grant them. | Haskell 2010 |
 | `must-fail/D_EffectNotInRow.hs` | The row only has network, and the body prints. | with extensions |
+
+## Reading order
+
+Read the examples in the order of the guide, A to D. Each part builds on the previous ones and
+needs, in addition, what the last column lists.
+
+| Part | Files, in order | You need to know |
+|:--|:--|:--|
+| A. Types only | `src/A_TypesOnly.hs` (it uses `Url` and `firstLine` from `src/Capabilities.hs`) | `IO` and `do` notation, records, a constraint such as `Monad m =>` |
+| B. Tagless final | `src/Capabilities.hs`, `src/B_TaglessFinal.hs`, then the three `must-fail/B_*.hs` with their errors in `outputs/` | Type classes and instances; `Functor`, `Applicative` and `Monad` instances for a `newtype`; the `State` monad |
+| C. Transformers | `src/C1_Transformers.hs`, then `src/C2_Mtl.hs` | `ReaderT`, `StateT` and `lift` from `transformers`; for C2, the classes of `mtl` (`MonadReader`, `MonadState`) |
+| D. Effect rows | `src/D_EffectRows.hs` (the program), then `src/Effects.hs` (the mechanism), then `must-fail/D_EffectNotInRow.hs` | GADTs, `DataKinds` (type-level lists), multi-parameter classes and overlapping instances |
+
+Where to learn them:
+
+- Type classes, `Functor`, `Applicative`, `Monad` and monad transformers: the
+  [Typeclassopedia](https://wiki.haskell.org/Typeclassopedia), and the documentation of
+  [`transformers`](https://hackage.haskell.org/package/transformers) and
+  [`mtl`](https://hackage.haskell.org/package/mtl).
+- The extensions of D, in the GHC User's Guide:
+  [GADTs](https://downloads.haskell.org/ghc/9.12.2/docs/users_guide/exts/gadt.html),
+  [`DataKinds`](https://downloads.haskell.org/ghc/9.12.2/docs/users_guide/exts/data_kinds.html),
+  [multi-parameter classes](https://downloads.haskell.org/ghc/9.12.2/docs/users_guide/exts/multi_param_type_classes.html)
+  and [overlapping instances](https://downloads.haskell.org/ghc/9.12.2/docs/users_guide/exts/instances.html#overlapping-instances).
+
+## Exploring in GHCi
+
+The most interesting part of B and D is what GHC infers, and GHCi lets you ask it directly. From
+the root of the repository:
+
+```
+ghci -isrc src/B_TaglessFinal.hs
+```
+
+`:t` shows the type GHC infers, `:info` a class and its instances, and `:reload` (`:r`) loads the
+files again after editing them. Functions can also be written at the prompt, and GHC infers their
+capabilities just as it does in the file. With GHC 9.12.2 (`[safe]` is a Safe Haskell annotation
+and can be ignored here):
+
+```
+ghci> :info Files
+type Files :: (* -> *) -> Constraint
+class Monad m => Files m where
+  readTextFile :: FilePath -> m String
+  {-# MINIMAL readTextFile #-}
+  	-- Defined at src/Capabilities.hs:23:1
+instance [safe] Files Test
+  -- Defined at src/B_TaglessFinal.hs:71:10
+ghci> runState (runTest (summary "https://example.org")) []
+((),["test page for https://example.org"])
+ghci> let quiet url = do { page <- httpGet url; return (firstLine page) }
+ghci> :t quiet
+quiet :: Net m => Url -> m String
+ghci> let both url path = do { page <- httpGet url; note <- readTextFile path; printLine (page ++ note) }
+ghci> :t both
+both :: (Net m, Files m, Console m) => Url -> FilePath -> m ()
+```
+
+Only `Test` grants `Files`, so `runApp (both "https://example.org" "note.txt")` is rejected with
+`No instance for ‘Files App’`. `quiet` does not print, and `Console` disappears from its type.
+
+In D, `ghci -isrc src/D_EffectRows.hs` shows how each handler removes one effect from the row:
+
+```
+ghci> :t summary
+summary :: (Member Net es, Member Console es) => Url -> Eff es ()
+ghci> :t handleNet fakePages (summary "https://example.org")
+handleNet fakePages (summary "https://example.org")
+  :: Member Console es => Eff es ()
+ghci> :t handleConsolePure (handleNet fakePages (summary "https://example.org"))
+handleConsolePure (handleNet fakePages (summary "https://example.org"))
+  :: Eff es ((), [String])
+ghci> run (handleConsolePure (handleNet fakePages (summary "https://example.org")))
+((),["<title of https://example.org>"])
+```
+
+Things to try: write at the prompt a function that also reads a file, and look at its type; in
+the file, give `summary` a signature with fewer capabilities than it uses, and `:r`; in D, apply
+the handlers in the other order. `build.sh` regenerates these sessions in `outputs/ghci-B.txt` and
+`outputs/ghci-D.txt`.
 
 ## Which extensions are needed, and why
 

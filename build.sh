@@ -50,4 +50,34 @@ if ! $GHCC -v0 -Wno-missing-signatures -e ':t summary' -e ':t summaryWithFile' \
   cat outputs/B_inferred-types.txt; echo "FAILED ghc -e (inferred types of B)"; failures=$((failures + 1))
 fi
 
+# GHCi sessions shown in "Exploring in GHCi" (README and page). Each step runs
+# its commands in a fresh GHCi and appends them to the transcript, after a
+# "ghci> " prompt, followed by what GHC answers.
+ghci_step() {
+  local out=$1 file=$2 c
+  shift 2
+  local args=()
+  for c in "$@"; do printf 'ghci> %s\n' "$c" >> "$out"; args+=(-e "$c"); done
+  if ! $GHCC -v0 -Wno-missing-signatures "${args[@]}" "$file" >> "$out" 2>&1; then
+    cat "$out"; echo "FAILED GHCi session $out"; failures=$((failures + 1))
+  fi
+}
+
+: > outputs/ghci-B.txt
+ghci_step outputs/ghci-B.txt src/B_TaglessFinal.hs ':info Files'
+ghci_step outputs/ghci-B.txt src/B_TaglessFinal.hs \
+  'runState (runTest (summary "https://example.org")) []'
+ghci_step outputs/ghci-B.txt src/B_TaglessFinal.hs \
+  'let quiet url = do { page <- httpGet url; return (firstLine page) }' ':t quiet'
+ghci_step outputs/ghci-B.txt src/B_TaglessFinal.hs \
+  'let both url path = do { page <- httpGet url; note <- readTextFile path; printLine (page ++ note) }' ':t both'
+
+: > outputs/ghci-D.txt
+ghci_step outputs/ghci-D.txt src/D_EffectRows.hs ':t summary'
+ghci_step outputs/ghci-D.txt src/D_EffectRows.hs ':t handleNet fakePages (summary "https://example.org")'
+ghci_step outputs/ghci-D.txt src/D_EffectRows.hs \
+  ':t handleConsolePure (handleNet fakePages (summary "https://example.org"))'
+ghci_step outputs/ghci-D.txt src/D_EffectRows.hs \
+  'run (handleConsolePure (handleNet fakePages (summary "https://example.org")))'
+
 exit $failures

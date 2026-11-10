@@ -1,0 +1,16 @@
+ghci> :info Files
+type Files :: (* -> *) -> Constraint
+class Monad m => Files m where
+  readTextFile :: FilePath -> m String
+  {-# MINIMAL readTextFile #-}
+  	-- Defined at src/Capabilities.hs:23:1
+instance [safe] Files Test
+  -- Defined at src/B_TaglessFinal.hs:71:10
+ghci> runState (runTest (summary "https://example.org")) []
+((),["test page for https://example.org"])
+ghci> let quiet url = do { page <- httpGet url; return (firstLine page) }
+ghci> :t quiet
+quiet :: Net m => Url -> m String
+ghci> let both url path = do { page <- httpGet url; note <- readTextFile path; printLine (page ++ note) }
+ghci> :t both
+both :: (Net m, Files m, Console m) => Url -> FilePath -> m ()

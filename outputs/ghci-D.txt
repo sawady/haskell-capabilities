@@ -1,0 +1,10 @@
+ghci> :t summary
+summary :: (Member Net es, Member Console es) => Url -> Eff es ()
+ghci> :t handleNet fakePages (summary "https://example.org")
+handleNet fakePages (summary "https://example.org")
+  :: Member Console es => Eff es ()
+ghci> :t handleConsolePure (handleNet fakePages (summary "https://example.org"))
+handleConsolePure (handleNet fakePages (summary "https://example.org"))
+  :: Eff es ((), [String])
+ghci> run (handleConsolePure (handleNet fakePages (summary "https://example.org")))
+((),["<title of https://example.org>"])

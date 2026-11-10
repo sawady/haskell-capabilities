@@ -39,6 +39,10 @@ released versions yet.
   outputs and the page with the ones in the repository.
 - The note on how GHC 9.14 shows B's inferred types.
 - `CONTRIBUTING.md` and this changelog.
+- Reading order, with what each part (A to D) needs and where to learn it, in the README and the
+  page.
+- "Exploring in GHCi": how to ask GHC for the types it infers in B and D, in the README and the
+  page. `build.sh` records the sessions in `outputs/ghci-B.txt` and `outputs/ghci-D.txt`.
 
 ### Fixed
 

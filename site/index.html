@@ -114,6 +114,16 @@
     <p class="meta">All the code on this page comes from the repository <a href="https://github.com/sawady/haskell-capabilities"><code>sawady/haskell-capabilities</code></a> and compiles with GHC 9.12.2. The errors shown are the ones GHC gives.</p>
   </header>
 
+  <h2>Reading order</h2>
+  <p>The sections follow the order in which the files are best read. Each one builds on the previous ones and needs, in addition, what is listed here:</p>
+  <ul>
+    <li><strong>1. Types only</strong>, <code>src/A_TypesOnly.hs</code>: <code>IO</code> and <code>do</code> notation, records, a constraint such as <code>Monad m =&gt;</code>.</li>
+    <li><strong>2. Tagless final</strong>, <code>src/Capabilities.hs</code>, <code>src/B_TaglessFinal.hs</code> and the three <code>must-fail/B_*.hs</code>: type classes and instances; <code>Functor</code>, <code>Applicative</code> and <code>Monad</code> instances for a <code>newtype</code>; the <code>State</code> monad.</li>
+    <li><strong>3. Monad transformers</strong>, <code>src/C1_Transformers.hs</code> and then <code>src/C2_Mtl.hs</code>: <code>ReaderT</code>, <code>StateT</code> and <code>lift</code>; for the mtl style, the classes <code>MonadReader</code> and <code>MonadState</code>.</li>
+    <li><strong>4. Effect rows</strong>, <code>src/D_EffectRows.hs</code> (the program), then <code>src/Effects.hs</code> (the mechanism) and <code>must-fail/D_EffectNotInRow.hs</code>: GADTs, <code>DataKinds</code> (type-level lists), multi-parameter classes and overlapping instances.</li>
+  </ul>
+  <p>Type classes, monads and monad transformers are explained in the <a href="https://wiki.haskell.org/Typeclassopedia">Typeclassopedia</a> and in the documentation of <a href="https://hackage.haskell.org/package/transformers"><code>transformers</code></a> and <a href="https://hackage.haskell.org/package/mtl"><code>mtl</code></a>. The extensions of section 4 are in the GHC User's Guide: <a href="https://downloads.haskell.org/ghc/9.12.2/docs/users_guide/exts/gadt.html">GADTs</a>, <a href="https://downloads.haskell.org/ghc/9.12.2/docs/users_guide/exts/data_kinds.html"><code>DataKinds</code></a>, <a href="https://downloads.haskell.org/ghc/9.12.2/docs/users_guide/exts/multi_param_type_classes.html">multi-parameter classes</a> and <a href="https://downloads.haskell.org/ghc/9.12.2/docs/users_guide/exts/instances.html#overlapping-instances">overlapping instances</a>.</p>
+
   <h2>The starting point: IO allows everything</h2>
   <p>In Haskell, the type <code>IO ()</code> says that the function does input and output, but not which. This version, besides downloading the page, reads the process's environment variables, and its type does not change.</p>
   <figure class="code">
@@ -202,6 +212,29 @@ summaryWithFile
     <pre class="error">must-fail/B_InterpreterLacksCapability.hs:34:16: error: [GHC-39999]
     • No instance for ‘Files App’</pre>
   </figure>
+
+  <h3>Exploring it in GHCi</h3>
+  <p>What GHC infers can also be asked directly. From the root of the repository, <code>ghci -isrc src/B_TaglessFinal.hs</code> loads the example: <code>:t</code> shows a type, <code>:info</code> a class and its instances, and <code>:r</code> reloads the files after editing them. Functions written at the prompt get their capabilities inferred just as in the file:</p>
+  <figure class="code">
+    <figcaption>GHCi session on src/B_TaglessFinal.hs <span class="chip output">ghci</span></figcaption>
+    <pre class="out">ghci&gt; :info Files
+type Files :: (* -&gt; *) -&gt; Constraint
+class Monad m =&gt; Files m where
+  readTextFile :: FilePath -&gt; m String
+  {-# MINIMAL readTextFile #-}
+  	-- Defined at src/Capabilities.hs:23:1
+instance [safe] Files Test
+  -- Defined at src/B_TaglessFinal.hs:71:10
+ghci&gt; runState (runTest (summary "https://example.org")) []
+((),["test page for https://example.org"])
+ghci&gt; let quiet url = do { page &lt;- httpGet url; return (firstLine page) }
+ghci&gt; :t quiet
+quiet :: Net m =&gt; Url -&gt; m String
+ghci&gt; let both url path = do { page &lt;- httpGet url; note &lt;- readTextFile path; printLine (page ++ note) }
+ghci&gt; :t both
+both :: (Net m, Files m, Console m) =&gt; Url -&gt; FilePath -&gt; m ()</pre>
+  </figure>
+  <p>Only <code>Test</code> grants <code>Files</code> (<code>[safe]</code> is a Safe Haskell annotation and can be ignored here). <code>quiet</code> does not print, and <code>Console</code> disappears from its type. Things to try: write a function that also reads a file and look at its type; in the file, give <code>summary</code> a signature with fewer capabilities than it uses and reload.</p>
 
   <h2>Why classes and not just types?</h2>
   <p>Records over an abstract monad (section 1) already give the same safety. The difference is in who does the work:</p>
@@ -299,6 +332,20 @@ handleNet pages (<span class="ty">Request</span> (<span class="ty">There</span> 
       from the context: Member Net es</pre>
   </figure>
   <p>In Haskell the row is a type-level list, which is why <code>DataKinds</code>, <code>GADTs</code>, <code>TypeOperators</code> and four other extensions are needed. A list has an order and can repeat elements, which a real row does not. Languages designed for this, such as Koka, write the row in the function's type, with a variable for "the rest of the effects", and treat it as a set. In Haskell, libraries such as effectful, polysemy and fused-effects provide it. The repository uses a minimal version, written by hand in about 120 lines, so that the mechanism can be seen without dependencies.</p>
+  <p>In GHCi, <code>ghci -isrc src/D_EffectRows.hs</code> shows how each handler removes one effect from the row. Applying them in the other order is a good way to check the explanation:</p>
+  <figure class="code">
+    <figcaption>GHCi session on src/D_EffectRows.hs <span class="chip output">ghci</span></figcaption>
+    <pre class="out">ghci&gt; :t summary
+summary :: (Member Net es, Member Console es) =&gt; Url -&gt; Eff es ()
+ghci&gt; :t handleNet fakePages (summary "https://example.org")
+handleNet fakePages (summary "https://example.org")
+  :: Member Console es =&gt; Eff es ()
+ghci&gt; :t handleConsolePure (handleNet fakePages (summary "https://example.org"))
+handleConsolePure (handleNet fakePages (summary "https://example.org"))
+  :: Eff es ((), [String])
+ghci&gt; run (handleConsolePure (handleNet fakePages (summary "https://example.org")))
+((),["&lt;title of https://example.org&gt;"])</pre>
+  </figure>
 
   <h2>The four, side by side</h2>
   <div class="table">
