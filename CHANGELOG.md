@@ -62,6 +62,8 @@ released versions yet.
   location and the error code, "Could not deduce … from the context", "No instance for", "rigid
   type variable", the kinds in `forall`) and which lines matter. The first error is now shown
   whole, and the others up to the signature they mention.
+- `TEACHING.md`, a short teaching guide: learning objectives, estimated duration of each part and
+  exercise, and how to use the exercises in class. Linked from the README and the page.
 
 ### Fixed
 

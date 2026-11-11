@@ -186,6 +186,11 @@ adding the same capability in the four styles to compare what each one costs. Th
 solutions are in `exercises/solutions/`, apart from the statements, and `build.sh` and CI check
 them like the examples.
 
+## For teachers
+
+[`TEACHING.md`](TEACHING.md) is a short teaching guide: learning objectives for each part, an
+estimated duration for each section and exercise, and how to use the exercises in class.
+
 ## Which extensions are needed, and why
 
 | Style | Extensions | Why |
@@ -270,6 +275,6 @@ This project is free software. If it is useful to you, you can support its devel
 
 - The code (`src/`, `must-fail/`, `exercises/solutions/`, `build.sh`, `site/build.py` and the CI
   workflows) is under the BSD 3-Clause license: see [`LICENSE`](LICENSE).
-- The text (this README, the exercises in `exercises/README.md` and the explanatory page,
-  `site/template.html` and `site/index.html`) is under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/): see
+- The text (this README, the exercises in `exercises/README.md`, the teaching guide in
+  `TEACHING.md` and the explanatory page, `site/template.html` and `site/index.html`) is under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/): see
   [`LICENSE-docs`](LICENSE-docs). Code fragments that appear in the text remain under BSD 3-Clause.
