@@ -182,6 +182,27 @@ the file, give `summary` a signature with fewer capabilities than it uses, and `
 the handlers in the other order. `build.sh` regenerates these sessions in `outputs/ghci-B.txt` and
 `outputs/ghci-D.txt`.
 
+## Optional: example D with effectful
+
+[`bridge/effectful/`](bridge/effectful/) has example D written with a real effect library,
+[effectful-core](https://hackage.haskell.org/package/effectful-core), the core of
+[effectful](https://hackage.haskell.org/package/effectful): the same effects, program and
+handlers, with `Net :> es` instead of `Member Net es` and `IOE` instead of `EmbedIO`. It prints the
+same as D (`outputs/effectful-D.txt`). The guide compares the two in
+[The same program with effectful](https://sawady.github.io/haskell-capabilities/#effectful).
+
+It is the only part of the repository that needs a package outside GHC, so it is kept apart:
+`build.sh` does not use it, and it needs `cabal` and access to Hackage.
+
+```
+cd bridge/effectful
+cabal run -v0 D_Effectful
+```
+
+`cabal.project` fixes the index-state of Hackage, so the versions of the dependencies do not change.
+It was tested with effectful-core 2.7.1.2 and GHC 9.12.2, which is what its own CI workflow,
+`.github/workflows/effectful.yml`, uses to build it and compare its output.
+
 ## The holes, compiling
 
 The guide recommends leaving out of the subset everything that gives back ambient authority:
@@ -299,8 +320,8 @@ This project is free software. If it is useful to you, you can support its devel
 
 ## License
 
-- The code (`src/`, `must-fail/`, `exercises/solutions/`, `escapes/`, `build.sh`, `site/build.py`
-  and the CI workflows) is under the BSD 3-Clause license: see [`LICENSE`](LICENSE).
+- The code (`src/`, `must-fail/`, `exercises/solutions/`, `escapes/`, `bridge/`, `build.sh`,
+  `site/build.py` and the CI workflows) is under the BSD 3-Clause license: see [`LICENSE`](LICENSE).
 - The text (this README, the exercises in `exercises/README.md`, the teaching guide in
   `TEACHING.md` and the explanatory page, `site/template.html` and `site/index.html`) is under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/): see
   [`LICENSE-docs`](LICENSE-docs). Code fragments that appear in the text remain under BSD 3-Clause.

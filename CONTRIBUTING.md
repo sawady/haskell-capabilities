@@ -38,7 +38,8 @@ say so in the PR.
 
 - Haskell 2010 whenever possible. Every file declares its extensions with `LANGUAGE`; if an
   example needs a new one, explain why in a comment and in the README table.
-- Only `base`, `mtl` and `transformers`, which ship with GHC.
+- Only `base`, `mtl` and `transformers`, which ship with GHC. The one exception is
+  `bridge/effectful/`, which is built apart with `cabal` and is not used by `build.sh`.
 - Names, comments and documentation in English.
 - The page (`site/index.html`) is never edited by hand: change the template or the code.
 

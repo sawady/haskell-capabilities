@@ -1,0 +1,14 @@
+cabal-version:      2.4
+name:               effectful-bridge
+version:            0
+synopsis:           Example D of haskell-capabilities, written with effectful
+license:            BSD-3-Clause
+build-type:         Simple
+
+-- Kept apart from the rest of the repository: build.sh does not use it, and
+-- the examples only need base, mtl and transformers.
+executable D_Effectful
+  main-is:          D_Effectful.hs
+  build-depends:    base, effectful-core == 2.7.*
+  default-language: Haskell2010
+  ghc-options:      -Wall

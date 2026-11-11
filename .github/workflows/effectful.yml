@@ -1,0 +1,57 @@
+# Builds and runs bridge/effectful/, example D written with the effectful
+# library, and compares what it prints with outputs/effectful-D.txt.
+#
+# It is kept apart from the build workflow: it is the only part of the
+# repository that needs a package outside GHC (effectful-core, from
+# Hackage), and build.sh does not use it. It runs with the reference
+# version, GHC 9.12.2; cabal.project fixes the index-state, so that the
+# versions of the dependencies do not change from one run to another.
+name: effectful
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'bridge/effectful/**'
+      - 'outputs/effectful-D.txt'
+      - '.github/workflows/effectful.yml'
+  pull_request:
+    paths:
+      - 'bridge/effectful/**'
+      - 'outputs/effectful-D.txt'
+      - '.github/workflows/effectful.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  effectful:
+    name: effectful with GHC 9.12.2
+    runs-on: ubuntu-latest
+    env:
+      LANG: C.UTF-8
+    defaults:
+      run:
+        working-directory: bridge/effectful
+    steps:
+      - uses: actions/checkout@v5
+
+      - id: setup
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: '9.12.2'
+          cabal-update: true
+
+      - uses: actions/cache@v4
+        with:
+          path: ${{ steps.setup.outputs.cabal-store }}
+          key: effectful-${{ runner.os }}-ghc-9.12.2-${{ hashFiles('bridge/effectful/cabal.project', 'bridge/effectful/effectful-bridge.cabal') }}
+
+      - name: Build
+        run: cabal build
+
+      - name: Run and compare with outputs/effectful-D.txt
+        run: |
+          cabal run -v0 D_Effectful > ../../outputs/effectful-D.txt
+          git diff --exit-code -- ../../outputs/effectful-D.txt

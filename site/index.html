@@ -406,6 +406,56 @@ ghci&gt; run (handleConsolePure (handleNet fakePages (summary "https://example.o
 ((),["&lt;title of https://example.org&gt;"])</pre>
   </figure>
 
+  <h3 id="effectful">The same program with effectful</h3>
+  <p>The hand-made <code>Effects</code> is a minimal version of what the libraries do. This is example D written with <a href="https://hackage.haskell.org/package/effectful-core">effectful-core</a>, the core of <a href="https://hackage.haskell.org/package/effectful">effectful</a>. The effects only declare operations, as before; the differences are in the details:</p>
+  <figure class="code">
+    <figcaption>bridge/effectful/D_Effectful.hs: the effects <span class="chip ext">+ 6 extensions</span></figcaption>
+    <pre><code><span class="kw">data</span> <span class="ty">Net</span> :: <span class="ty">Effect</span> <span class="kw">where</span>
+  <span class="ty">HttpGet</span> :: <span class="ty">Url</span> -&gt; <span class="ty">Net</span> m <span class="ty">String</span>
+
+<span class="kw">data</span> <span class="ty">Console</span> :: <span class="ty">Effect</span> <span class="kw">where</span>
+  <span class="ty">PrintLine</span> :: <span class="ty">String</span> -&gt; <span class="ty">Console</span> m ()
+
+<span class="com">-- | How the operations of each effect are dispatched: dynamically, that is,</span>
+<span class="com">-- with a handler chosen when running the program.</span>
+<span class="kw">type</span> <span class="kw">instance</span> <span class="ty">DispatchOf</span> <span class="ty">Net</span> = <span class="ty">Dynamic</span>
+<span class="kw">type</span> <span class="kw">instance</span> <span class="ty">DispatchOf</span> <span class="ty">Console</span> = <span class="ty">Dynamic</span>
+
+httpGet :: <span class="ty">Net</span> :&gt; es =&gt; <span class="ty">Url</span> -&gt; <span class="ty">Eff</span> es <span class="ty">String</span>
+httpGet = send . <span class="ty">HttpGet</span>
+
+printLine :: <span class="ty">Console</span> :&gt; es =&gt; <span class="ty">String</span> -&gt; <span class="ty">Eff</span> es ()
+printLine = send . <span class="ty">PrintLine</span></code></pre>
+  </figure>
+  <p><code>Net :&gt; es</code> is what <code>Member Net es</code> was: <code>Net</code> is in the row. Each effect has one more parameter, the monad <code>m</code>, for operations that take computations as arguments (these two do not), and declares how it is dispatched: <code>Dynamic</code> means that a handler decides what each operation does. The program, <code>summary</code>, is the same as in D with <code>:&gt;</code> in its signature.</p>
+  <figure class="code">
+    <figcaption>bridge/effectful/D_Effectful.hs: the handlers <span class="chip ext">+ 6 extensions</span></figcaption>
+    <pre><code>handleNet :: (<span class="ty">Url</span> -&gt; <span class="ty">String</span>) -&gt; <span class="ty">Eff</span> (<span class="ty">Net</span> : es) a -&gt; <span class="ty">Eff</span> es a
+handleNet pages = interpret $ \_ -&gt; \<span class="kw">case</span>
+  <span class="ty">HttpGet</span> url -&gt; return (pages url)
+
+<span class="com">-- | Interprets Console without IO, with another effect of the library, a</span>
+<span class="com">-- Writer, that collects the lines.</span>
+handleConsolePure :: <span class="ty">Eff</span> (<span class="ty">Console</span> : es) a -&gt; <span class="ty">Eff</span> es (a, [<span class="ty">String</span>])
+handleConsolePure = reinterpret runWriter $ \_ -&gt; \<span class="kw">case</span>
+  <span class="ty">PrintLine</span> s -&gt; tell [s]
+
+<span class="com">-- | IO is an effect of the library, IOE, which goes at the end of the row:</span>
+<span class="com">-- the role of EmbedIO in "Effects".</span>
+handleConsoleIO :: <span class="ty">IOE</span> :&gt; es =&gt; <span class="ty">Eff</span> (<span class="ty">Console</span> : es) a -&gt; <span class="ty">Eff</span> es a
+handleConsoleIO = interpret $ \_ -&gt; \<span class="kw">case</span>
+  <span class="ty">PrintLine</span> s -&gt; liftIO (putStrLn s)</code></pre>
+  </figure>
+  <p>The handlers still remove one effect from the row, but they do not walk through the computation by hand: <code>interpret</code> receives what to do with each operation. The pure console uses another effect of the library, a <code>Writer</code>, which <code>reinterpret</code> adds and removes. IO is an effect of the library too, <code>IOE</code>, in the place of <code>EmbedIO</code>, and <code>runPureEff</code> and <code>runEff</code> do what <code>run</code> and <code>runIO</code> did. It prints the same as D, with <code>IOE</code> instead of <code>EmbedIO</code>:</p>
+  <figure class="code">
+    <figcaption>output <span class="chip output">runs</span></figcaption>
+    <pre class="out">Row [Net, Console], handled without IO:
+&lt;title of https://example.org&gt;
+Row [Net, Console, IOE], handled with real IO:
+&lt;title of https://example.org&gt;</pre>
+  </figure>
+  <p>What it costs: a dependency, effectful-core, which also brings in packages that do not ship with GHC (<code>monad-control</code>, <code>primitive</code>, <code>strict-mutable-base</code>, <code>transformers-base</code>, <code>unliftio-core</code>), and six extensions: <code>DataKinds</code>, <code>GADTs</code>, <code>TypeOperators</code> and <code>FlexibleContexts</code>, as in <code>Effects</code>, plus <code>TypeFamilies</code> for <code>DispatchOf</code> and <code>LambdaCase</code> for the <code>\case</code> of the handlers. It is the only part of the repository that needs <code>cabal</code>: <code>bridge/effectful/</code> is kept apart, <code>./build.sh</code> does not use it, and a CI workflow of its own builds it with effectful-core 2.7.1.2 and GHC 9.12.2 and compares its output.</p>
+
   <h2 id="side-by-side">The four, side by side</h2>
   <div class="table">
     <table>

@@ -68,6 +68,10 @@ released versions yet.
   one with `MonadIO` and one with `unsafePerformIO`, and `escapes/must-fail/` the second one in a
   Safe module, which Safe Haskell rejects. `build.sh` and CI check them like the examples. A
   section of the page and of the README explains them, with Safe Haskell in the bibliography.
+- `bridge/effectful/`: example D written with effectful-core, kept apart and optional. It is the
+  only part that needs a package outside GHC: `build.sh` does not use it, and a CI workflow of its
+  own (`effectful.yml`, GHC 9.12.2) builds it and compares its output with
+  `outputs/effectful-D.txt`. The page compares it with the hand-made `Effects`.
 
 ### Fixed
 

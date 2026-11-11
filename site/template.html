@@ -277,6 +277,24 @@
     <pre class="out"><!--@outputs/ghci-D.txt--></pre>
   </figure>
 
+  <h3 id="effectful">The same program with effectful</h3>
+  <p>The hand-made <code>Effects</code> is a minimal version of what the libraries do. This is example D written with <a href="https://hackage.haskell.org/package/effectful-core">effectful-core</a>, the core of <a href="https://hackage.haskell.org/package/effectful">effectful</a>. The effects only declare operations, as before; the differences are in the details:</p>
+  <figure class="code">
+    <figcaption>bridge/effectful/D_Effectful.hs: the effects <span class="chip ext">+ 6 extensions</span></figcaption>
+    <pre><code><!--@bridge/effectful/D_Effectful.hs|data Net :: Effect where|printLine = send--></code></pre>
+  </figure>
+  <p><code>Net :&gt; es</code> is what <code>Member Net es</code> was: <code>Net</code> is in the row. Each effect has one more parameter, the monad <code>m</code>, for operations that take computations as arguments (these two do not), and declares how it is dispatched: <code>Dynamic</code> means that a handler decides what each operation does. The program, <code>summary</code>, is the same as in D with <code>:&gt;</code> in its signature.</p>
+  <figure class="code">
+    <figcaption>bridge/effectful/D_Effectful.hs: the handlers <span class="chip ext">+ 6 extensions</span></figcaption>
+    <pre><code><!--@bridge/effectful/D_Effectful.hs|handleNet :: (Url|liftIO (putStrLn s)--></code></pre>
+  </figure>
+  <p>The handlers still remove one effect from the row, but they do not walk through the computation by hand: <code>interpret</code> receives what to do with each operation. The pure console uses another effect of the library, a <code>Writer</code>, which <code>reinterpret</code> adds and removes. IO is an effect of the library too, <code>IOE</code>, in the place of <code>EmbedIO</code>, and <code>runPureEff</code> and <code>runEff</code> do what <code>run</code> and <code>runIO</code> did. It prints the same as D, with <code>IOE</code> instead of <code>EmbedIO</code>:</p>
+  <figure class="code">
+    <figcaption>output <span class="chip output">runs</span></figcaption>
+    <pre class="out"><!--@outputs/effectful-D.txt--></pre>
+  </figure>
+  <p>What it costs: a dependency, effectful-core, which also brings in packages that do not ship with GHC (<code>monad-control</code>, <code>primitive</code>, <code>strict-mutable-base</code>, <code>transformers-base</code>, <code>unliftio-core</code>), and six extensions: <code>DataKinds</code>, <code>GADTs</code>, <code>TypeOperators</code> and <code>FlexibleContexts</code>, as in <code>Effects</code>, plus <code>TypeFamilies</code> for <code>DispatchOf</code> and <code>LambdaCase</code> for the <code>\case</code> of the handlers. It is the only part of the repository that needs <code>cabal</code>: <code>bridge/effectful/</code> is kept apart, <code>./build.sh</code> does not use it, and a CI workflow of its own builds it with effectful-core 2.7.1.2 and GHC 9.12.2 and compares its output.</p>
+
   <h2 id="side-by-side">The four, side by side</h2>
   <div class="table">
     <table>

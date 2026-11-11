@@ -1,0 +1,4 @@
+Row [Net, Console], handled without IO:
+<title of https://example.org>
+Row [Net, Console, IOE], handled with real IO:
+<title of https://example.org>

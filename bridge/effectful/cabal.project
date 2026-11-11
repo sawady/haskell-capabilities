@@ -1,0 +1,3 @@
+packages: .
+-- Fixes the versions that cabal chooses, so that the build is reproducible.
+index-state: hackage.haskell.org 2026-11-11T13:40:24Z
