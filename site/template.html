@@ -95,6 +95,9 @@
   .no { color: var(--bad); font-weight: 600; }
 
   .note { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; }
+  .annot { font-size: 15.5px; gap: 8px; }
+  .annot code { white-space: normal; }
+  .annot-intro { font-size: 15.5px; color: var(--muted); }
   footer { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--rule); font-size: 14.5px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
   @media (max-width: 480px) {
     body { font-size: 16px; padding-block: 24px 48px; }
@@ -163,19 +166,40 @@
   <p>The interpreter is a concrete monad with instances for some capabilities. Choosing the interpreter is choosing what is granted. There is one over IO and a pure one for testing, and the same program runs in both without changes.</p>
 
   <h3>What GHC rejects</h3>
+  <p>GHC&rsquo;s messages are long, but they all have the same shape. The first one is shown whole and read part by part; the others, only up to where they say something new. The complete messages are in <code>outputs/must-fail-*.txt</code>.</p>
   <figure class="code">
     <figcaption>must-fail/B_CapabilityNotGranted.hs: the signature grants network and console, the body reads a file <span class="chip fails">does not compile</span></figcaption>
-    <pre class="error"><!--@outputs/must-fail-B_CapabilityNotGranted.txt|error:|from the context--></pre>
+    <pre class="error"><!--@outputs/must-fail-B_CapabilityNotGranted.txt--></pre>
   </figure>
+  <p class="annot-intro">How to read it, from top to bottom:</p>
+  <ul class="annot">
+    <li><code>must-fail/B_CapabilityNotGranted.hs:12:13: error: [GHC-39999]</code>: the file, the line (12) and the column (13) where GHC found the problem, and the code of the error. The code says which kind of error it is, and can be looked up in the <a href="https://errors.haskell.org/">Haskell Error Index</a>; <a href="https://errors.haskell.org/messages/GHC-39999/">GHC-39999</a> is a missing instance.</li>
+    <li>Each <code>•</code> starts a part of the message. The first part is the error; the other ones say where it happened.</li>
+    <li><code>Could not deduce ‘Files m’ arising from a use of ‘readTextFile’</code>: using <code>readTextFile</code> requires the constraint <code>Files m</code>, and GHC could not obtain it. It says &ldquo;deduce&rdquo; because <code>m</code> is abstract: GHC can only use what the signature gives it.</li>
+    <li><code>from the context: (Net m, Console m)</code>: what the signature gives. Read together with the previous line, this is the capability check: the body needs <code>Files</code> and the signature only grants <code>Net</code> and <code>Console</code>.</li>
+    <li><code>bound by the type signature for: summary :: forall (m :: * -&gt; *). …</code> and <code>at …:9:1-44</code>: where that context comes from, the signature on line 9. GHC writes the signature with its type variable made explicit: <code>forall (m :: * -&gt; *)</code> means &ldquo;for every <code>m</code> that takes a type and gives a type&rdquo;, such as <code>IO</code> or <code>Test</code>. <code>*</code> is an older name for <code>Type</code>.</li>
+    <li><code>Possible fix: add (Files m) to the context</code>: GHC&rsquo;s suggestion is to grant the capability in the signature. The program would compile, with one more capability: whether to grant it is a decision about the signature, not a correction of the body.</li>
+    <li><code>In a stmt of a 'do' block</code>, <code>In the expression</code>, <code>In an equation for ‘summary’</code>: where the error is, from the inside out: the statement, the <code>do</code> block that contains it, the equation that contains the block. The first one is usually enough.</li>
+    <li>The last lines quote line 12 and mark with <code>^^^^</code> the expression the error is about: <code>readTextFile</code>, at column 13.</li>
+  </ul>
   <figure class="code">
     <figcaption>must-fail/B_DirectIO.hs: with the abstract monad, IO cannot be used <span class="chip fails">does not compile</span></figcaption>
-    <pre class="error"><!--@outputs/must-fail-B_DirectIO.txt|error:|Actual: IO ()--></pre>
+    <pre class="error"><!--@outputs/must-fail-B_DirectIO.txt|error:|B_DirectIO.hs:10:1-44--></pre>
   </figure>
+  <ul class="annot">
+    <li><code>Couldn't match type ‘m’ with ‘IO’</code>: two types that had to be the same are not. The code, GHC-25897, is not the one of the previous error: this is not a missing capability, but a type that does not fit.</li>
+    <li><code>Expected: m ()</code> and <code>Actual: IO ()</code>: &ldquo;expected&rdquo; is what the place demands, because every statement of a <code>do</code> block of type <code>m ()</code> has to be an action in <code>m</code>; &ldquo;actual&rdquo; is what the expression is, because <code>putStrLn</code> gives an <code>IO ()</code>.</li>
+    <li><code>‘m’ is a rigid type variable bound by the type signature</code>: &ldquo;rigid&rdquo; means that the body cannot choose <code>m</code>. Whoever calls <code>summary</code> chooses it, so the body cannot assume that it is <code>IO</code>. This is the abstract monad at work.</li>
+    <li>The rest of the message, not shown here, has the same <code>In a stmt of a 'do' block</code> lines as before, and <code>Relevant bindings include</code>, which lists the variables in scope with their types, in case one of them explains the error.</li>
+  </ul>
   <figure class="code">
     <figcaption>must-fail/B_InterpreterLacksCapability.hs: the interpreter does not grant files <span class="chip fails">does not compile</span></figcaption>
-    <pre class="error"><!--@outputs/must-fail-B_InterpreterLacksCapability.txt|error:|No instance for--></pre>
+    <pre class="error"><!--@outputs/must-fail-B_InterpreterLacksCapability.txt|error:|arising from a use of--></pre>
   </figure>
-
+  <ul class="annot">
+    <li><code>No instance for ‘Files App’</code>: the same code as the first error, GHC-39999, with other words. There the type was a variable, <code>m</code>, and GHC looked for the capability in the context. Here it is a concrete type, <code>App</code>, and GHC looked for an instance, which does not exist.</li>
+    <li><code>arising from a use of ‘summaryWithFile’</code> and <code>35:16</code>: the error is reported where the program is run with <code>App</code>, on line 35, and not in <code>summaryWithFile</code>, which is correct. What fails is the choice of interpreter.</li>
+  </ul>
   <h3>Exploring it in GHCi</h3>
   <p>What GHC infers can also be asked directly. From the root of the repository, <code>ghci -isrc src/B_TaglessFinal.hs</code> loads the example: <code>:t</code> shows a type, <code>:info</code> a class and its instances, and <code>:r</code> reloads the files after editing them. Functions written at the prompt get their capabilities inferred just as in the file:</p>
   <figure class="code">
@@ -239,8 +263,13 @@
   <p>The same program is run by applying the handlers in order. One interprets the console by collecting lines in a list, without IO. Another interprets it with real IO, which then has to be further down the row. Rejecting a capability that was not granted works just as with classes:</p>
   <figure class="code">
     <figcaption>must-fail/D_EffectNotInRow.hs: the row only has Net, the body prints <span class="chip fails">does not compile</span></figcaption>
-    <pre class="error"><!--@outputs/must-fail-D_EffectNotInRow.txt|error:|from the context--></pre>
+    <pre class="error"><!--@outputs/must-fail-D_EffectNotInRow.txt|error:|D_EffectNotInRow.hs:9:1-44--></pre>
   </figure>
+  <ul class="annot">
+    <li>The same shape as the first error in section 2: <code>Could not deduce ‘Member Console es’</code>, <code>from the context: Member Net es</code>. The body needs <code>Console</code> to be in the row, and the signature only says that <code>Net</code> is.</li>
+    <li><code>forall (es :: [* -&gt; *])</code>: <code>es</code> is a type-level list whose elements take a type and give a type, like <code>Net</code> and <code>Console</code>. That list is the row.</li>
+    <li>The signature is split over three lines only because it is longer; it is the one on line 9.</li>
+  </ul>
   <p>In Haskell the row is a type-level list, which is why <code>DataKinds</code>, <code>GADTs</code>, <code>TypeOperators</code> and four other extensions are needed. A list has an order and can repeat elements, which a real row does not. Languages designed for this, such as Koka, write the row in the function's type, with a variable for "the rest of the effects", and treat it as a set. In Haskell, libraries such as effectful, polysemy and fused-effects provide it. The repository uses a minimal version, written by hand in about 120 lines, so that the mechanism can be seen without dependencies.</p>
   <p>In GHCi, <code>ghci -isrc src/D_EffectRows.hs</code> shows how each handler removes one effect from the row. Applying them in the other order is a good way to check the explanation:</p>
   <figure class="code">

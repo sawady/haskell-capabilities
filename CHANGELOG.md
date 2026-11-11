@@ -58,6 +58,10 @@ released versions yet.
   existing lines each one makes you change. Its solutions are checked like the others.
 - `src/Effects.hs` also exports `send` and the constructors of `Eff` and `Union`, which writing a
   new effect and its handler outside the module needs. Nothing else in the module changed.
+- The page walks through the GHC errors it shows: what each part of the message means (the
+  location and the error code, "Could not deduce … from the context", "No instance for", "rigid
+  type variable", the kinds in `forall`) and which lines matter. The first error is now shown
+  whole, and the others up to the signature they mention.
 
 ### Fixed
 
