@@ -64,6 +64,10 @@ released versions yet.
   whole, and the others up to the signature they mention.
 - `TEACHING.md`, a short teaching guide: learning objectives, estimated duration of each part and
   exercise, and how to use the exercises in class. Linked from the README and the page.
+- "The holes, compiling": `escapes/` has two programs that compile and bypass the capabilities,
+  one with `MonadIO` and one with `unsafePerformIO`, and `escapes/must-fail/` the second one in a
+  Safe module, which Safe Haskell rejects. `build.sh` and CI check them like the examples. A
+  section of the page and of the README explains them, with Safe Haskell in the bibliography.
 
 ### Fixed
 

@@ -1,0 +1,7 @@
+escapes/must-fail/UnsafePerformIO_Safe.hs:11:1: error: [GHC-44360]
+    System.IO.Unsafe: Can't be safely imported!
+    The module itself isn't safe.
+   |
+11 | import System.IO.Unsafe (unsafePerformIO)
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+

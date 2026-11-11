@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Builds and runs each example in src/, checks that the ones in must-fail/ do
 # not compile, each one with the error it expects, does the same with the
-# solutions in exercises/solutions/, and saves everything that is shown to
-# outputs/.
+# solutions in exercises/solutions/ and with the escapes in escapes/, and
+# saves everything that is shown to outputs/.
 #
 # By default it uses the `ghc` on the PATH (or GHCup's). To try another version:
 #   GHC=ghc-9.6.7 ./build.sh
@@ -117,5 +117,15 @@ for f in exercises/solutions/must-fail/*.hs; do
 done
 : > outputs/solution-E2_Clock-ghci.txt
 ghci_step outputs/solution-E2_Clock-ghci.txt exercises/solutions/E2_Clock.hs ':t stampedSummary'
+
+# The escapes: programs that compile although they bypass the capabilities
+# (escapes/), and the same with Safe Haskell, which rejects them
+# (escapes/must-fail/), checked with the same criterion as the examples.
+for f in escapes/*.hs; do
+  build_and_run "$f" "outputs/escape-$(basename "$f" .hs).txt"
+done
+for f in escapes/must-fail/*.hs; do
+  check_must_fail "$f" "outputs/escape-must-fail-$(basename "$f" .hs).txt"
+done
 
 exit $failures

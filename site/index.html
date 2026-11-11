@@ -430,6 +430,50 @@ ghci&gt; run (handleConsolePure (handleNet fakePages (summary "https://example.o
   </ol>
   <p>One limitation to keep in mind: with classes, the capability is "use the network", not "use this URL". Restricting which resources are accessed would call for refinements or other mechanisms, and is outside this scope.</p>
 
+  <h2 id="escapes">The holes, compiling</h2>
+  <p>Point 3 of the previous section says that <code>MonadIO</code> and <code>unsafePerformIO</code> give back ambient authority. These two programs, in <code>escapes/</code>, show it: both compile, with the capabilities of section 2, and both read the environment, as the first program of this page did.</p>
+  <figure class="code">
+    <figcaption>escapes/MonadIO.hs <span class="chip ext">+ Safe</span></figcaption>
+    <pre><code>summary :: (<span class="ty">Net</span> m, <span class="ty">Console</span> m, <span class="ty">MonadIO</span> m) =&gt; <span class="ty">Url</span> -&gt; m ()
+summary url = <span class="kw">do</span>
+  page &lt;- httpGet url
+  printLine (firstLine page)
+  env &lt;- liftIO getEnvironment
+  printLine (<span class="str">"  (read "</span> ++ show (length env) ++ <span class="str">" environment variables without permission)"</span>)</code></pre>
+  </figure>
+  <figure class="code">
+    <figcaption>output <span class="chip output">runs</span></figcaption>
+    <pre class="out">&lt;title of https://example.org&gt;
+  (read 2 environment variables without permission)</pre>
+  </figure>
+  <p>With <code>MonadIO m</code> in the constraints, <code>liftIO</code> runs any IO action. At least the escape is in the type, where it can be seen.</p>
+  <figure class="code">
+    <figcaption>escapes/UnsafePerformIO.hs <span class="chip h2010">Haskell 2010</span></figcaption>
+    <pre><code>summary :: (<span class="ty">Net</span> m, <span class="ty">Console</span> m) =&gt; <span class="ty">Url</span> -&gt; m ()
+summary url = <span class="kw">do</span>
+  page &lt;- httpGet url
+  printLine (firstLine page)
+  <span class="kw">let</span> env = unsafePerformIO getEnvironment
+  printLine (<span class="str">"  (read "</span> ++ show (length env) ++ <span class="str">" environment variables without permission)"</span>)</code></pre>
+  </figure>
+  <figure class="code">
+    <figcaption>output <span class="chip output">runs</span></figcaption>
+    <pre class="out">&lt;title of https://example.org&gt;
+  (read 2 environment variables without permission)</pre>
+  </figure>
+  <p>This one has exactly the type of <code>summary</code> in section 2, and nothing in it shows that the environment is read: <code>unsafePerformIO</code> runs an IO action as if it were a pure value.</p>
+  <p>GHC already has a mechanism to leave such functions out of the language: <a href="https://downloads.haskell.org/ghc/9.12.2/docs/users_guide/exts/safe_haskell.html">Safe Haskell</a>. A module that starts with <code>{-# LANGUAGE Safe #-}</code> can only import modules that Safe Haskell trusts, and <code>System.IO.Unsafe</code> is not one of them. The User&rsquo;s Guide gives it this use: its example is a restricted IO monad for untrusted code, and it names capability-based security among the systems that can be built as a library with it. The same program, in a Safe module, does not compile:</p>
+  <figure class="code">
+    <figcaption>escapes/must-fail/UnsafePerformIO_Safe.hs: the escape, with <code>{-# LANGUAGE Safe #-}</code> <span class="chip fails">does not compile</span></figcaption>
+    <pre class="error">escapes/must-fail/UnsafePerformIO_Safe.hs:11:1: error: [GHC-44360]
+    System.IO.Unsafe: Can't be safely imported!
+    The module itself isn't safe.
+   |
+11 | import System.IO.Unsafe (unsafePerformIO)
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^</pre>
+  </figure>
+  <p>The error, <a href="https://errors.haskell.org/messages/GHC-44360/">GHC-44360</a>, is at the import, on line 11: in a Safe module, <code>System.IO.Unsafe</code> cannot even be imported. <code>MonadIO</code>, on the other hand, is not affected: <code>escapes/MonadIO.hs</code> is itself a Safe module, because <code>liftIO</code> comes from a module that Safe Haskell trusts, and doing IO is not what Safe Haskell forbids. So the two holes are closed in different ways: <code>unsafePerformIO</code>, with Safe Haskell; <code>MonadIO</code>, like <code>IO</code> in signatures, by leaving it out of the subset.</p>
+
   <h2 id="exercises">Exercises</h2>
   <p>The repository has <a href="https://github.com/sawady/haskell-capabilities/tree/main/exercises">six graded exercises</a>, from section 1 to section 4: adding a capability as a record and as a class, predicting GHC&rsquo;s errors with transformers and in the mtl style, running the mtl-style program without IO, following the row through the handlers, and adding the same capability in the four styles to compare what each one costs. The solutions are apart from the statements, and <code>./build.sh</code> checks them like the examples.</p>
   <p>For teachers, the <a href="https://github.com/sawady/haskell-capabilities/blob/main/TEACHING.md">teaching guide</a> has learning objectives for each section, an estimated duration for each section and exercise, and how to use the exercises in class.</p>
@@ -456,6 +500,11 @@ ghci&gt; run (handleConsolePure (handleNet fakePages (summary "https://example.o
     <li>Oleg Kiselyov and Hiromi Ishii. Freer monads, more extensible effects. In <em>Proceedings of the 2015 ACM SIGPLAN Symposium on Haskell</em>, pages 94&ndash;105, 2015. <a href="https://doi.org/10.1145/2804302.2804319">doi:10.1145/2804302.2804319</a>. A request to one effect of the row plus a continuation, which is how <code>Eff</code> is defined in <code>src/Effects.hs</code>.</li>
     <li>Daan Leijen. Koka: Programming with row polymorphic effect types. In <em>Proceedings of the 5th Workshop on Mathematically Structured Functional Programming (MSFP 2014)</em>, EPTCS 153, pages 100&ndash;126, 2014. <a href="https://doi.org/10.4204/EPTCS.153.8">doi:10.4204/EPTCS.153.8</a></li>
     <li>Effect libraries for Haskell mentioned above: <a href="https://hackage.haskell.org/package/effectful">effectful</a>, <a href="https://hackage.haskell.org/package/polysemy">polysemy</a> and <a href="https://hackage.haskell.org/package/fused-effects">fused-effects</a>.</li>
+  </ul>
+  <h3>The holes (Safe Haskell)</h3>
+  <ul>
+    <li>David Terei, Simon Marlow, Simon Peyton Jones and David Mazi&egrave;res. Safe Haskell. In <em>Proceedings of the 2012 Haskell Symposium</em>, pages 137&ndash;148, 2012. <a href="https://doi.org/10.1145/2364506.2364524">doi:10.1145/2364506.2364524</a></li>
+    <li>The <a href="https://downloads.haskell.org/ghc/9.12.2/docs/users_guide/exts/safe_haskell.html">Safe Haskell chapter</a> of the GHC 9.12.2 User&rsquo;s Guide.</li>
   </ul>
 
   <footer>

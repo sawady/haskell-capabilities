@@ -63,6 +63,8 @@ needed. The script:
 - checks the solutions to the [exercises](#exercises) in the same way: the ones in
   `exercises/solutions/` compile and run, and the ones in `exercises/solutions/must-fail/` are
   rejected with the error they expect;
+- does the same with the [escapes](#the-holes-compiling): the programs in `escapes/` compile and
+  run, and the one in `escapes/must-fail/` is rejected by Safe Haskell;
 - saves to `outputs/` everything that is shown, including GHC's error messages.
 
 The examples run with a fixed environment (only `LANG` and `PATH`), so that the outputs do not
@@ -96,6 +98,9 @@ but when showing B's inferred types it expands the synonyms (`[Char]` instead of
 | `must-fail/B_DirectIO.hs` | With the abstract monad, not even IO can be used directly. | Haskell 2010 |
 | `must-fail/B_InterpreterLacksCapability.hs` | The program asks for files and the interpreter does not grant them. | Haskell 2010 |
 | `must-fail/D_EffectNotInRow.hs` | The row only has network, and the body prints. | with extensions |
+| `escapes/MonadIO.hs` | Compiles: with `MonadIO`, the function reads the environment. Even in a Safe module. | Haskell 2010 + `Safe` |
+| `escapes/UnsafePerformIO.hs` | Compiles: with the type of B's `summary`, and `unsafePerformIO`, it reads the environment. | Haskell 2010 |
+| `escapes/must-fail/UnsafePerformIO_Safe.hs` | The same, in a Safe module: Safe Haskell rejects the import of `System.IO.Unsafe`. | Haskell 2010 + `Safe` |
 
 ## Reading order
 
@@ -176,6 +181,21 @@ Things to try: write at the prompt a function that also reads a file, and look a
 the file, give `summary` a signature with fewer capabilities than it uses, and `:r`; in D, apply
 the handlers in the other order. `build.sh` regenerates these sessions in `outputs/ghci-B.txt` and
 `outputs/ghci-D.txt`.
+
+## The holes, compiling
+
+The guide recommends leaving out of the subset everything that gives back ambient authority:
+`IO` in signatures, `MonadIO` and `unsafePerformIO`. The programs in `escapes/` show why: both
+compile with the capabilities of B and read the environment. `escapes/MonadIO.hs` asks for
+`MonadIO m`, so at least the escape is in its type; `escapes/UnsafePerformIO.hs` has exactly the
+type of B's `summary`, and nothing in it shows the escape.
+
+[Safe Haskell](https://downloads.haskell.org/ghc/9.12.2/docs/users_guide/exts/safe_haskell.html)
+is the mechanism GHC already has for the second one: a module with `{-# LANGUAGE Safe #-}` cannot
+import `System.IO.Unsafe`, and `escapes/must-fail/UnsafePerformIO_Safe.hs` is rejected with
+`[GHC-44360]`. It does not close the first one: `escapes/MonadIO.hs` is itself a Safe module.
+`MonadIO`, like `IO` in signatures, has to be left out of the subset. The guide explains it in
+[The holes, compiling](https://sawady.github.io/haskell-capabilities/#escapes).
 
 ## Exercises
 
@@ -260,6 +280,12 @@ A minimal bibliography, by section of the guide. It is also at the end of the
     [effectful](https://hackage.haskell.org/package/effectful),
     [polysemy](https://hackage.haskell.org/package/polysemy) and
     [fused-effects](https://hackage.haskell.org/package/fused-effects).
+- The holes (Safe Haskell):
+  - David Terei, Simon Marlow, Simon Peyton Jones and David Mazières. Safe Haskell. In
+    *Proceedings of the 2012 Haskell Symposium*, pages 137–148, 2012.
+    [doi:10.1145/2364506.2364524](https://doi.org/10.1145/2364506.2364524)
+  - The [Safe Haskell chapter](https://downloads.haskell.org/ghc/9.12.2/docs/users_guide/exts/safe_haskell.html)
+    of the GHC 9.12.2 User's Guide.
 
 ## Contributing
 
@@ -273,8 +299,8 @@ This project is free software. If it is useful to you, you can support its devel
 
 ## License
 
-- The code (`src/`, `must-fail/`, `exercises/solutions/`, `build.sh`, `site/build.py` and the CI
-  workflows) is under the BSD 3-Clause license: see [`LICENSE`](LICENSE).
+- The code (`src/`, `must-fail/`, `exercises/solutions/`, `escapes/`, `build.sh`, `site/build.py`
+  and the CI workflows) is under the BSD 3-Clause license: see [`LICENSE`](LICENSE).
 - The text (this README, the exercises in `exercises/README.md`, the teaching guide in
   `TEACHING.md` and the explanatory page, `site/template.html` and `site/index.html`) is under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/): see
   [`LICENSE-docs`](LICENSE-docs). Code fragments that appear in the text remain under BSD 3-Clause.
