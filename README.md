@@ -179,9 +179,10 @@ the handlers in the other order. `build.sh` regenerates these sessions in `outpu
 
 ## Exercises
 
-[`exercises/`](exercises/README.md) has five graded exercises, from part A to part D: adding a
+[`exercises/`](exercises/README.md) has six graded exercises, from part A to part D: adding a
 capability as a record and as a class, predicting GHC's errors with transformers and in the mtl
-style, running the mtl-style program without IO, and following the row through the handlers. The
+style, running the mtl-style program without IO, following the row through the handlers, and
+adding the same capability in the four styles to compare what each one costs. The
 solutions are in `exercises/solutions/`, apart from the statements, and `build.sh` and CI check
 them like the examples.
 

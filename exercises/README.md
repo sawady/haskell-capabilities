@@ -1,6 +1,6 @@
 # Exercises
 
-Five exercises, from part A to part D of the [guide](https://sawady.github.io/haskell-capabilities/),
+Six exercises, from part A to part D of the [guide](https://sawady.github.io/haskell-capabilities/),
 from easier to harder. Each one starts from an example in `src/` and asks for a small change.
 
 | | Part | What it practices |
@@ -10,6 +10,7 @@ from easier to harder. Each one starts from an example in `src/` and asks for a 
 | 3 | C. Transformers | Predicting GHC's errors with transformers and in the mtl style |
 | 4 | C. Transformers | Running the same mtl-style program without IO |
 | 5 | D. Effect rows | The row at each step of the handlers, and what happens when one is missing |
+| 6 | A to D | The same new capability in the four styles, and what each one costs |
 
 Try them before looking at the solutions, in [`solutions/`](solutions/). `build.sh` and CI check
 them like the examples: the ones in `solutions/` compile and run, and the ones in
@@ -102,3 +103,29 @@ Start from a copy of `src/D_EffectRows.hs`.
 
 Solutions: [`solutions/E5_HandlerOrder.hs`](solutions/E5_HandlerOrder.hs) and
 [`solutions/must-fail/E5_HandlerMissing.hs`](solutions/must-fail/E5_HandlerMissing.hs).
+
+## 6. One capability in the four styles (parts A to D)
+
+Exercise 2 added a capability `Clock`, with `now :: m Int`, in tagless final. Add it now in the
+other styles too, starting each time from a copy of the example of that part, and make each
+program print the time (a clock that always says 42 is enough) before the first line of the page:
+
+- A. In part 3 of `src/A_TypesOnly.hs`, as a record of functions over the abstract monad.
+- B. Tagless final: that is exercise 2.
+- C1. In `src/C1_Transformers.hs`, as one more layer of the stack.
+- C2. In `src/C2_Mtl.hs`, as a class of our own, like `Net`.
+- D. In `src/D_EffectRows.hs`, as one more effect of the row, with its own handler. `Effects`
+  exports what writing a new effect needs: `send`, and the constructors of `Eff` (`Pure`,
+  `Request`) and of `Union` (`Here`, `There`). `handleNet` in `src/Effects.hs` is a model for the
+  handler.
+
+Question: in each style, which lines that already existed had to change? Count the signatures,
+the calls, the instances, the `lift` and the handlers. In C1, does it matter where in the stack
+the new layer goes? In C2, why can the clock not be one more `MonadState`?
+
+Solutions: [`solutions/E6_ClockRecords.hs`](solutions/E6_ClockRecords.hs),
+[`solutions/E2_Clock.hs`](solutions/E2_Clock.hs),
+[`solutions/E6_ClockTransformers.hs`](solutions/E6_ClockTransformers.hs),
+[`solutions/E6_ClockMtl.hs`](solutions/E6_ClockMtl.hs) and
+[`solutions/E6_ClockEffects.hs`](solutions/E6_ClockEffects.hs). What changed in each style is
+in the comments of its solution.

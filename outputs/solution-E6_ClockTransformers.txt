@@ -1,0 +1,3 @@
+[42s] <title of https://example.org/docs> (request 1)
+[42s] <title of https://example.org/blog> (request 2)
+Requests made: 2

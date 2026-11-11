@@ -17,10 +17,15 @@
 -- It is a minimal version of what libraries such as effectful, polysemy or
 -- fused-effects do, and languages such as Koka. It needs several
 -- extensions: the row is a type-level list.
+--
+-- The constructors of 'Eff' and 'Union', and 'send', are exported so that
+-- new effects and their handlers can be written outside this module.
 module Effects
   ( Url
-  , Eff
+  , Eff (..)
+  , Union (..)
   , Member
+  , send
   , Net (..)
   , Console (..)
   , EmbedIO (..)

@@ -54,6 +54,10 @@ released versions yet.
   ones in `exercises/solutions/` compile and run, and the ones in
   `exercises/solutions/must-fail/` are rejected with the error they expect. Their outputs are in
   `outputs/solution-*.txt`.
+- A sixth exercise: the same new capability, `Clock`, in the four styles, to compare which
+  existing lines each one makes you change. Its solutions are checked like the others.
+- `src/Effects.hs` also exports `send` and the constructors of `Eff` and `Union`, which writing a
+  new effect and its handler outside the module needs. Nothing else in the module changed.
 
 ### Fixed
 
